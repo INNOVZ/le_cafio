@@ -221,7 +221,7 @@ export default function ProductForm({
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
                   <FieldLabel htmlFor={`${formId}-price`}>
-                    Product Price (€)
+                    Product Price (AED)
                   </FieldLabel>
                   <Input
                     {...field}
@@ -231,6 +231,7 @@ export default function ProductForm({
                     aria-invalid={fieldState.invalid}
                     placeholder="0.00"
                     autoComplete="off"
+                    className="[appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                     onChange={(e) =>
                       field.onChange(
                         e.target.value === '' ? 0 : e.target.valueAsNumber
