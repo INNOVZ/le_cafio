@@ -20,7 +20,7 @@ export default async function EditCategoryPage({
 
   return (
     <div className="h-full w-full max-w-5xl p-10">
-      <div className="mb-6 flex flex-row items-center gap-3 px-10">
+      <div className="mb-6 flex flex-row items-center gap-3">
         <Link href="/dashboard/categories">
           <CircleChevronLeft />
         </Link>
