@@ -16,8 +16,8 @@ import {
   SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import {
-  TerminalSquareIcon,
-  BotIcon,
+  Pizza,
+  Store,
   BookOpenIcon,
   Settings2Icon,
 } from 'lucide-react';
@@ -27,14 +27,14 @@ const data = {
     {
       title: 'Products',
       url: '/dashboard/products',
-      icon: <TerminalSquareIcon />,
+      icon: <Pizza />,
       isActive: true,
       items: [],
     },
     {
       title: 'Categories',
       url: '/dashboard/categories',
-      icon: <BotIcon />,
+      icon: <Store />,
       items: [],
     },
     {
