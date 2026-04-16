@@ -251,6 +251,7 @@ function parseProductPayload(formData: FormData) {
 function revalidateDashboardProductPaths(productId?: string) {
   revalidatePath('/dashboard/products');
   revalidatePath('/dashboard/products/newproduct');
+  revalidatePath('/menu');
   if (productId) {
     revalidatePath(`/dashboard/products/${productId}/edit`);
   }
@@ -260,6 +261,7 @@ function revalidateDashboardCategoryPaths(categoryId?: string) {
   revalidatePath('/dashboard/categories');
   revalidatePath('/dashboard/categories/newcategory');
   revalidatePath('/dashboard/products/newproduct');
+  revalidatePath('/menu');
   if (categoryId) {
     revalidatePath(`/dashboard/categories/${categoryId}`);
     revalidatePath(`/dashboard/categories/${categoryId}/edit`);
