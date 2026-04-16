@@ -11,12 +11,12 @@ export default async function ListCategories() {
         {categories.length === 0 ? (
           <p>No categories found.</p>
         ) : (
-            categories.map((category) => (
+          categories.map((category) => (
             <Link
               key={category.id}
               href={`/dashboard/categories/${category.id}`}
             >
-              <div className="flex items-center gap-3 rounded-lg px-2 py-2 shadow-sm">
+              <div className="bg-cafio-sec flex items-center gap-3 rounded-lg px-2 py-2 shadow-sm">
                 {category.imageUrl ? (
                   <Image
                     src={category.imageUrl}
@@ -34,7 +34,7 @@ export default async function ListCategories() {
                     {category._count.products} product
                     {category._count.products === 1 ? '' : 's'}
                   </div>
-                  <div className="text-xs text-muted-foreground">
+                  <div className="text-muted-foreground text-xs">
                     {category.isActive ? 'Active' : 'Inactive'} · Sort order{' '}
                     {category.sortOrder}
                   </div>

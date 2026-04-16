@@ -26,7 +26,7 @@ function getMetadataValue(
 
 function getDisplayName(user: User) {
   const fullName = getMetadataValue(user.user_metadata, ['full_name', 'name']);
-  if (fullName) {
+  if (fullName && fullName !== 'null null') {
     return fullName;
   }
 

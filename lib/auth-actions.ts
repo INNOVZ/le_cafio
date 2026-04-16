@@ -41,8 +41,8 @@ export async function signup(
 
   // type-casting here for convenience
   // in practice, you should validate your inputs
-  const firstName = formData.get('first-name') as string;
-  const lastName = formData.get('last-name') as string;
+  const firstName = (formData.get('first-name') as string | null) || '';
+  const lastName = (formData.get('last-name') as string | null) || '';
   const password = formData.get('password') as string;
   const confirmPassword = formData.get('confirm-password') as string;
 
@@ -55,7 +55,7 @@ export async function signup(
     password,
     options: {
       data: {
-        full_name: `${firstName + ' ' + lastName}`,
+        full_name: [firstName, lastName].filter(Boolean).join(' ').trim(),
         email: formData.get('email') as string,
       },
     },
