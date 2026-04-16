@@ -10,7 +10,7 @@ export default async function ListProducts() {
       <p className="text-lg font-bold text-gray-600">
               Total menu Items : {products.length} {products.length === 1 ? 'Item' : ' Items'}
             </p>
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-3">
         {products.length === 0 ? (
           <p>No products found.</p>
         ) : (
