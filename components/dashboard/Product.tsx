@@ -7,14 +7,15 @@ export default async function ListProducts() {
 
   return (
     <div className="h-full w-full px-5 py-10">
-      <div className="mt-6 grid grid-cols-1  gap-3">
+      <p className="text-lg font-bold text-gray-600">
+              Total menu Items : {products.length} {products.length === 1 ? 'Item' : ' Items'}
+            </p>
+      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-3">
         {products.length === 0 ? (
           <p>No products found.</p>
         ) : (
           <>
-            <p className="text-lg font-bold text-gray-600">
-              Total menu Items : {products.length} {products.length === 1 ? 'Item' : ' Items'}
-            </p>
+            
               {products.map((product) => (
             
                 <Link
