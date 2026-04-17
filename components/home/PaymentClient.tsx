@@ -157,10 +157,10 @@ export default function PaymentClient({
       whatsappWindow = window.open('', '_blank', 'noopener,noreferrer');
 
       if (!whatsappWindow) {
-        toast.error('Please allow pop-ups so WhatsApp can open in a new tab.', {
+        toast.info('Pop-up blocked. We will redirect you to WhatsApp in this window.', {
           position: 'bottom-right',
         });
-        return;
+        // We do not return here; we proceed to create the order and will fallback to same-tab redirect
       }
     }
 
@@ -208,7 +208,7 @@ export default function PaymentClient({
       if (whatsappWindow) {
         whatsappWindow.location.href = result.whatsappUrl;
       } else {
-        window.open(result.whatsappUrl, '_blank', 'noopener,noreferrer');
+        window.location.href = result.whatsappUrl;
       }
 
       setIsSubmitting(false);
