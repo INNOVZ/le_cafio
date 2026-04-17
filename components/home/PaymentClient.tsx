@@ -61,6 +61,8 @@ export default function PaymentClient({
   );
   const resetCheckout = useCheckoutStore((state) => state.resetCheckout);
 
+  const [successWhatsappUrl, setSuccessWhatsappUrl] = useState<string | null>(null);
+
   useEffect(() => {
     const syncHydration = () => {
       if (
@@ -103,7 +105,7 @@ export default function PaymentClient({
   const total = subtotal + serviceFee + deliveryFee;
 
   useEffect(() => {
-    if (!isHydrated) {
+    if (!isHydrated || successWhatsappUrl) {
       return;
     }
 
@@ -134,6 +136,7 @@ export default function PaymentClient({
     phone,
     restaurantLocationId,
     router,
+    successWhatsappUrl,
   ]);
 
   async function handleConfirmPayment() {
@@ -149,19 +152,6 @@ export default function PaymentClient({
         position: 'bottom-right',
       });
       return;
-    }
-
-    let whatsappWindow: Window | null = null;
-
-    if (paymentMethod === 'CASH_ON_DELIVERY') {
-      whatsappWindow = window.open('', '_blank', 'noopener,noreferrer');
-
-      if (!whatsappWindow) {
-        toast.info('Pop-up blocked. We will redirect you to WhatsApp in this window.', {
-          position: 'bottom-right',
-        });
-        // We do not return here; we proceed to create the order and will fallback to same-tab redirect
-      }
     }
 
     setIsSubmitting(true);
@@ -201,22 +191,13 @@ export default function PaymentClient({
 
       clearCart();
       resetCheckout();
-      toast.success('Order created. Opening WhatsApp in a new tab.', {
+      toast.success('Order created successfully!', {
         position: 'bottom-right',
       });
 
-      if (whatsappWindow) {
-        whatsappWindow.location.href = result.whatsappUrl;
-      } else {
-        window.location.href = result.whatsappUrl;
-      }
-
+      setSuccessWhatsappUrl(result.whatsappUrl);
       setIsSubmitting(false);
     } catch (error) {
-      if (whatsappWindow && !whatsappWindow.closed) {
-        whatsappWindow.close();
-      }
-
       console.error('COD order error:', error);
       toast.error(
         error instanceof Error
@@ -255,6 +236,36 @@ export default function PaymentClient({
     paymentMethod === 'CASH_ON_DELIVERY'
       ? 'Creating COD Order...'
       : 'Processing Payment...';
+
+  if (successWhatsappUrl) {
+    return (
+      <div className="mx-auto w-full max-w-7xl px-5 py-8 md:px-10 md:py-12">
+        <div className="flex flex-col items-center justify-center space-y-6 rounded-[2rem] border border-[#eadfd6] bg-[#fffaf5] px-6 py-16 text-center shadow-[0_18px_45px_rgba(74,45,27,0.06)]">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#25D366] text-white">
+            <MessageCircle className="h-8 w-8" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-3xl font-semibold tracking-tight text-[#3f2418]">
+              Order Placed Successfully!
+            </h1>
+            <p className="max-w-md text-sm text-[#7d6658]">
+              Your order has been recorded. Click the button below to send your
+              order details securely to our team via WhatsApp.
+            </p>
+          </div>
+          <a
+            href={successWhatsappUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-[#1ebd5a] active:bg-[#1ca851]"
+          >
+            <MessageCircle className="h-5 w-5 fill-current" />
+            Open WhatsApp to Confirm
+          </a>
+        </div>
+      </div>
+    );
+  }
 
   if (!isHydrated) {
     return (
