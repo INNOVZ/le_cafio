@@ -17,8 +17,10 @@ type MenuCategoryItem = {
 
 export default function MenuClient({
   categories,
+  branchName,
 }: {
   categories: MenuCategoryItem[];
+  branchName?: string;
 }) {
   const selectedCategoryId = useStore((state) => state.selectedMenuCategoryId);
   const setSelectedMenuCategory = useStore(

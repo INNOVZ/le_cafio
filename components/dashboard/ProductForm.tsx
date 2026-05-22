@@ -34,6 +34,7 @@ import { Switch } from '@/components/ui/switch';
 import type {
   CategoryOption,
   DashboardProductFormValues,
+  RestaurantLocationListItem,
 } from '@/lib/db-actions';
 import { createProduct, updateProduct } from '@/lib/db-actions';
 import { useProductStore } from '@/store/product-store';
@@ -49,6 +50,7 @@ const formSchema = z.object({
     .max(200, 'Description must be at most 200 characters.'),
   price: z.number().min(0, 'Price must be at least 0.'),
   categoryId: z.string().min(1, 'Please select a category.'),
+  restaurantLocationId: z.string().optional(),
   isAvailable: z.boolean(),
   image: z.any().optional(),
 });
@@ -58,6 +60,7 @@ type FormValues = z.infer<typeof formSchema>;
 type ProductFormProps = {
   mode: 'create' | 'edit';
   categories: CategoryOption[];
+  restaurantLocations: RestaurantLocationListItem[];
   initialValues?: DashboardProductFormValues;
 };
 
@@ -67,6 +70,7 @@ function getDefaultValues(initialValues?: DashboardProductFormValues): FormValue
     description: initialValues?.description ?? '',
     price: initialValues?.price ?? 0,
     categoryId: initialValues?.categoryId ?? '',
+    restaurantLocationId: initialValues?.restaurantLocationId ?? '',
     isAvailable: initialValues?.isAvailable ?? true,
     image: undefined,
   };
@@ -75,6 +79,7 @@ function getDefaultValues(initialValues?: DashboardProductFormValues): FormValue
 export default function ProductForm({
   mode,
   categories,
+  restaurantLocations,
   initialValues,
 }: ProductFormProps) {
   const {
@@ -106,6 +111,10 @@ export default function ProductForm({
       formData.append('price', String(data.price));
       formData.append('categoryId', data.categoryId);
       formData.append('isAvailable', String(data.isAvailable));
+
+      if (data.restaurantLocationId) {
+        formData.append('restaurantLocationId', data.restaurantLocationId);
+      }
 
       if (mode === 'edit' && initialValues?.id) {
         formData.append('id', initialValues.id);
@@ -274,6 +283,45 @@ export default function ProductForm({
                       )}
                     </SelectContent>
                   </Select>
+                  {fieldState.invalid && (
+                    <FieldError errors={[fieldState.error]} />
+                  )}
+                </Field>
+              )}
+            />
+
+            <Controller
+              name="restaurantLocationId"
+              control={form.control}
+              render={({ field, fieldState }) => (
+                <Field data-invalid={fieldState.invalid}>
+                  <FieldLabel htmlFor={`${formId}-branch`}>
+                    Branch
+                  </FieldLabel>
+                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
+                    <SelectTrigger
+                      id={`${formId}-branch`}
+                      aria-invalid={fieldState.invalid}
+                    >
+                      <SelectValue placeholder="Select a branch..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {restaurantLocations.length === 0 ? (
+                        <SelectItem value="__none" disabled>
+                          No branches found
+                        </SelectItem>
+                      ) : (
+                        restaurantLocations.map((loc) => (
+                          <SelectItem key={loc.id} value={loc.id}>
+                            {loc.name}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <FieldDescription>
+                    Assign this product to a specific branch menu.
+                  </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}

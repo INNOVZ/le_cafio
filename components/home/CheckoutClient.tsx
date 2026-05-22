@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -30,8 +30,12 @@ function createSessionToken() {
 }
 
 export default function CheckoutClient({
+  branchSlug,
+  branchLocation,
   restaurantLocations,
 }: {
+  branchSlug: string;
+  branchLocation: RestaurantLocationListItem;
   restaurantLocations: RestaurantLocationListItem[];
 }) {
   const router = useRouter();
@@ -82,13 +86,13 @@ export default function CheckoutClient({
     (state) => state.invalidateDeliveryCheck
   );
 
-  const selectedRestaurant = useMemo(
-    () =>
-      restaurantLocations.find(
-        (location) => location.id === restaurantLocationId
-      ) ?? null,
-    [restaurantLocationId, restaurantLocations]
-  );
+  // Auto-set the branch in checkout store from the URL-derived prop
+  useEffect(() => {
+    updateCheckout({ restaurantLocationId: branchLocation.id });
+  }, [branchLocation.id, updateCheckout]);
+
+  // The branch is always known from props — use it directly for delivery checks
+  const selectedRestaurant = branchLocation;
 
   const subtotal = cartItems.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -315,7 +319,7 @@ export default function CheckoutClient({
       }
     }
 
-    router.push('/payment');
+    router.push(`/${branchSlug}/payment`);
   }
 
   return (
@@ -326,11 +330,11 @@ export default function CheckoutClient({
             Checkout
           </p>
           <h1 className="mt-2 text-3xl font-semibold tracking-tight text-[#3f2418]">
-            Choose a branch and confirm delivery
+            Confirm your delivery
           </h1>
         </div>
         <Link
-          href="/menu"
+          href={`/${branchSlug}`}
           className="inline-flex items-center rounded-full border border-[#ddcdbf] px-4 py-2 text-sm font-semibold text-[#4a281b] transition-colors hover:bg-[#f8f1ea]"
         >
           Back to Menu
@@ -346,7 +350,7 @@ export default function CheckoutClient({
             Add a few menu items before proceeding to checkout.
           </p>
           <Link
-            href="/menu"
+            href={`/${branchSlug}`}
             className="mt-6 inline-flex items-center rounded-full bg-[#694b43] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[#34180f]"
           >
             Browse Menu
@@ -355,43 +359,24 @@ export default function CheckoutClient({
       ) : (
         <div className="mt-10 grid gap-8 lg:grid-cols-[1.35fr_0.8fr]">
           <section className="space-y-6">
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              {restaurantLocations.map((location) => {
-                const isSelected = restaurantLocationId === location.id;
-
-                return (
-                  <button
-                    key={location.id}
-                    type="button"
-                    onClick={() => {
-                      updateCheckout({ restaurantLocationId: location.id });
-                      invalidateDeliveryCheck();
-                    }}
-                    className={`rounded-xl border p-4 text-left transition-all ${
-                      isSelected
-                        ? 'border-[#7e1208] bg-[#fff5ef] shadow-[0_12px_30px_rgba(126,18,8,0.08)]'
-                        : 'border-[#eadfd6] bg-white hover:border-[#d7c2b3]'
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#694b43] text-white">
-                        <Store className="h-4 w-4" />
-                      </div>
-                      <div>
-                        <p className="text-sm font-semibold text-[#694b43]">
-                          {location.name}
-                        </p>
-                        <p className="mt-1 text-sm text-[#694b43]">
-                          {location.addressLine}, {location.city}
-                        </p>
-                        <p className="mt-2 text-xs font-medium tracking-[0.14em] text-[#8f6e58] uppercase">
-                          Delivery radius {location.deliveryRadiusKm} km
-                        </p>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })}
+            {/* Branch info — auto-selected from URL */}
+            <div className="rounded-xl border border-[#7e1208] bg-[#fff5ef] p-4 shadow-[0_12px_30px_rgba(126,18,8,0.08)]">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#694b43] text-white">
+                  <Store className="h-4 w-4" />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-[#694b43]">
+                    {selectedRestaurant.name}
+                  </p>
+                  <p className="mt-1 text-sm text-[#694b43]">
+                    {selectedRestaurant.addressLine}, {selectedRestaurant.city}
+                  </p>
+                  <p className="mt-2 text-xs font-medium tracking-[0.14em] text-[#8f6e58] uppercase">
+                    Selected Branch
+                  </p>
+                </div>
+              </div>
             </div>
 
             <div className="rounded-xl border border-[#eadfd6] bg-[#fffaf5] p-6 shadow-[0_18px_45px_rgba(74,45,27,0.06)]">

@@ -1,8 +1,5 @@
-import PaymentClient from '@/components/home/PaymentClient';
-import { getRestaurantLocations } from '@/lib/db-actions';
+import { redirect } from 'next/navigation';
 
-export default async function PaymentPage() {
-  const restaurantLocations = await getRestaurantLocations();
-
-  return <PaymentClient restaurantLocations={restaurantLocations} />;
+export default function PaymentPage() {
+  redirect('/');
 }

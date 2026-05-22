@@ -1,8 +1,5 @@
-import CheckoutClient from '@/components/home/CheckoutClient';
-import { getRestaurantLocations } from '@/lib/db-actions';
+import { redirect } from 'next/navigation';
 
-export default async function CheckoutPage() {
-  const restaurantLocations = await getRestaurantLocations();
-
-  return <CheckoutClient restaurantLocations={restaurantLocations} />;
+export default function CheckoutPage() {
+  redirect('/');
 }

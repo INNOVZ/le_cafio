@@ -4,7 +4,7 @@ import { CircleChevronLeft } from 'lucide-react';
 
 import ProductForm from '@/components/dashboard/ProductForm';
 import { Button } from '@/components/ui/button';
-import { getCategoryOptions, getProductById } from '@/lib/db-actions';
+import { getCategoryOptions, getProductById, getRestaurantLocations } from '@/lib/db-actions';
 
 export default async function EditProductPage({
   params,
@@ -12,9 +12,10 @@ export default async function EditProductPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [product, categories] = await Promise.all([
+  const [product, categories, restaurantLocations] = await Promise.all([
     getProductById(id),
     getCategoryOptions(),
+    getRestaurantLocations(),
   ]);
 
   if (!product) {
@@ -36,6 +37,7 @@ export default async function EditProductPage({
       <ProductForm
         mode="edit"
         categories={categories}
+        restaurantLocations={restaurantLocations}
         initialValues={product}
       />
     </div>

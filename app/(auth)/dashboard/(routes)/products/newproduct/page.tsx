@@ -1,12 +1,15 @@
 import React from 'react';
 import AddProduct from '@/components/dashboard/AddProduct';
-import { getCategoryOptions } from '@/lib/db-actions';
+import { getCategoryOptions, getRestaurantLocations } from '@/lib/db-actions';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { CircleChevronLeft } from 'lucide-react';
 
 export default async function NewProductPage() {
-  const categories = await getCategoryOptions();
+  const [categories, restaurantLocations] = await Promise.all([
+    getCategoryOptions(),
+    getRestaurantLocations(),
+  ]);
 
   return (
     <div className="h-full w-full max-w-5xl p-10">
@@ -20,7 +23,7 @@ export default async function NewProductPage() {
           </Button>
         </Link>
       </div>
-      <AddProduct categories={categories} />
+      <AddProduct categories={categories} restaurantLocations={restaurantLocations} />
     </div>
   );
 }

@@ -181,7 +181,8 @@ model RestaurantLocation {
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  orders Order[]
+  orders   Order[]
+  products Product[]
 
   @@index([isActive, city])
 }
@@ -203,30 +204,33 @@ model Category {
 }
 
 model Product {
-  id             String   @id @default(uuid()) @db.Uuid
-  categoryId     String   @db.Uuid
-  name           String
-  slug           String   @unique
-  sku            String?  @unique
-  shortName      String?
-  description    String
-  imageUrl       String
-  price          Decimal  @db.Decimal(10, 2)
-  compareAtPrice Decimal? @db.Decimal(10, 2)
-  isActive       Boolean  @default(true)
-  isAvailable    Boolean  @default(true)
-  isFeatured     Boolean  @default(false)
-  prepTimeMin    Int?
-  nutritionInfo  Json?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id                   String   @id @default(uuid()) @db.Uuid
+  categoryId           String   @db.Uuid
+  restaurantLocationId String?  @db.Uuid
+  name                 String
+  slug                 String   @unique
+  sku                  String?  @unique
+  shortName            String?
+  description          String
+  imageUrl             String
+  price                Decimal  @db.Decimal(10, 2)
+  compareAtPrice       Decimal? @db.Decimal(10, 2)
+  isActive             Boolean  @default(true)
+  isAvailable          Boolean  @default(true)
+  isFeatured           Boolean  @default(false)
+  prepTimeMin          Int?
+  nutritionInfo        Json?
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
 
-  category     Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  optionGroups ProductOptionGroup[]
-  cartItems    CartItem[]
-  orderItems   OrderItem[]
+  category           Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
+  restaurantLocation RestaurantLocation?  @relation(fields: [restaurantLocationId], references: [id], onDelete: SetNull)
+  optionGroups       ProductOptionGroup[]
+  cartItems          CartItem[]
+  orderItems         OrderItem[]
 
   @@index([categoryId, isActive, isAvailable])
+  @@index([restaurantLocationId])
 }
 
 model ProductOptionGroup {

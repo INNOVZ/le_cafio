@@ -56,7 +56,7 @@ function QuantitySelector({
   );
 }
 
-function ProductCardItem({ product }: { product: ProductListItem }) {
+function ProductCardItem({ product, branchSlug }: { product: ProductListItem; branchSlug: string }) {
   const addToCart = useStore((state) => state.addToCart);
   const [quantity, setQuantity] = useState(1);
 
@@ -67,6 +67,7 @@ function ProductCardItem({ product }: { product: ProductListItem }) {
         name: product.name,
         imageUrl: product.imageUrl,
         price: product.price,
+        branchSlug,
       },
       quantity
     );
@@ -131,8 +132,10 @@ function ProductCardItem({ product }: { product: ProductListItem }) {
 
 export default function ProductCardClient({
   products,
+  branchSlug,
 }: {
   products: ProductListItem[];
+  branchSlug: string;
 }) {
   const selectedCategoryId = useStore((state) => state.selectedMenuCategoryId);
   const visibleProducts =
@@ -189,7 +192,7 @@ export default function ProductCardClient({
               </div>
               <div className="mx-auto grid grid-cols-1 gap-6 md:grid-cols-4">
                 {group.products.map((product) => (
-                  <ProductCardItem key={product.id} product={product} />
+                  <ProductCardItem key={product.id} product={product} branchSlug={branchSlug} />
                 ))}
               </div>
             </section>
@@ -198,7 +201,7 @@ export default function ProductCardClient({
       ) : (
         <div className="mx-auto grid grid-cols-1 gap-6 md:grid-cols-4">
           {visibleProducts.map((product) => (
-            <ProductCardItem key={product.id} product={product} />
+            <ProductCardItem key={product.id} product={product} branchSlug={branchSlug} />
           ))}
         </div>
       )}

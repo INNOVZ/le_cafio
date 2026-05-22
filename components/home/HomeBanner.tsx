@@ -35,23 +35,21 @@ const HomeBanner = () => {
               <span className="text-cafio-tir">Food</span> Experience
             </h1>
             <p className="mb-10 max-w-md text-center text-lg leading-relaxed opacity-90 md:text-left">
-              Breakfast to Brunch, Lunch to Dinner, and everything in between.
+              Breakfast to Brunch, Lunch to Dinner, and everything in between
             </p>
-            <div className="flex items-center justify-center gap-8 md:justify-start">
+            <div className="flex items-center justify-center gap-4 md:justify-start">
               <Link
-                href="/menu"
-                className="text-cafio-tir border-cafio-tir hover:text-cafio hover:bg-cafio-tir inline-flex cursor-pointer items-center rounded-full border px-4 py-2 transition-all duration-300 md:px-8 md:py-3"
+                href="/alreem"
+                className="text-cafio-tir border-cafio-tir hover:text-cafio hover:bg-white inline-flex cursor-pointer items-center rounded-full border px-4 py-2 transition-all duration-300 md:px-8 md:py-3"
               >
-                Order Now ↗
+                AL REEM ISLAND ↗
               </Link>
-              <a
-                href="/menu.pdf"
-                target="_blank"
-                rel="noreferrer"
-                className="hover:text-cafio-tir flex cursor-pointer items-center gap-2 transition-colors"
+              <Link
+                href="/adnec"
+                className="text-cafio bg-cafio-tir hover:text-cafio hover:bg-white inline-flex cursor-pointer items-center rounded-full border px-4 py-2 transition-all duration-300 md:px-8 md:py-3"
               >
-                View Menu ↗
-              </a>
+                ADNEC ↗
+              </Link>
             </div>
           </motion.div>
           <motion.div

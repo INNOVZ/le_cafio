@@ -13,6 +13,7 @@ import { createClient } from '@/utils/supabase/server';
 export type RestaurantLocationListItem = {
   id: string;
   name: string;
+  slug: string;
   addressLine: string;
   city: string;
   latitude: number;
@@ -98,6 +99,7 @@ export type DashboardProductFormValues = {
   description: string;
   price: number;
   categoryId: string;
+  restaurantLocationId: string | null;
   isAvailable: boolean;
   imageUrl: string;
 };
@@ -192,6 +194,7 @@ function parseProductPayload(formData: FormData) {
   const priceRaw = formData.get('price') as string | null;
   const isAvailableRaw = formData.get('isAvailable') as string | null;
   const categoryId = (formData.get('categoryId') as string | null)?.trim();
+  const restaurantLocationId = (formData.get('restaurantLocationId') as string | null)?.trim() || null;
 
   if (!title || title.length < 5) {
     return {
@@ -243,6 +246,7 @@ function parseProductPayload(formData: FormData) {
       description,
       price,
       categoryId,
+      restaurantLocationId,
       isAvailable: isAvailableRaw === 'true',
     },
   } as const;
@@ -447,6 +451,7 @@ export async function createProduct(
         imageUrl,
         isAvailable: parsed.values.isAvailable,
         isActive: true,
+        restaurantLocationId: parsed.values.restaurantLocationId,
       },
     });
 
@@ -503,6 +508,7 @@ export async function updateProduct(
         imageUrl: uploadedImageUrl ?? existingProduct.imageUrl,
         isAvailable: parsed.values.isAvailable,
         isActive: existingProduct.isActive,
+        restaurantLocationId: parsed.values.restaurantLocationId,
       },
     });
 
@@ -527,6 +533,7 @@ export async function getRestaurantLocations(): Promise<
     select: {
       id: true,
       name: true,
+      slug: true,
       line1: true,
       city: true,
       latitude: true,
@@ -538,12 +545,20 @@ export async function getRestaurantLocations(): Promise<
   return locations.map((location) => ({
     id: location.id,
     name: location.name,
+    slug: location.slug,
     addressLine: location.line1,
     city: location.city,
     latitude: Number(location.latitude),
     longitude: Number(location.longitude),
     deliveryRadiusKm: Number(location.deliveryRadiusKm),
   }));
+}
+
+export async function getRestaurantLocationBySlug(slug: string) {
+  return prisma.restaurantLocation.findUnique({
+    where: { slug },
+    select: { id: true, name: true, slug: true },
+  });
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {
@@ -870,11 +885,14 @@ export async function getCategoryById(
   return category;
 }
 
-export async function getProducts(categoryId?: string) {
+export async function getProducts(categoryId?: string, restaurantLocationId?: string) {
   const products = await prisma.product.findMany({
     where: {
       isActive: true,
       ...(categoryId ? { categoryId } : {}),
+      ...(restaurantLocationId
+        ? { OR: [{ restaurantLocationId }, { restaurantLocationId: null }] }
+        : {}),
     },
     orderBy: [{ category: { sortOrder: 'asc' } }, { name: 'asc' }],
     select: {
@@ -933,6 +951,7 @@ export async function getProductById(
       description: true,
       price: true,
       categoryId: true,
+      restaurantLocationId: true,
       isAvailable: true,
       imageUrl: true,
     },
@@ -948,6 +967,7 @@ export async function getProductById(
     description: product.description,
     price: Number(product.price),
     categoryId: product.categoryId,
+    restaurantLocationId: product.restaurantLocationId,
     isAvailable: product.isAvailable,
     imageUrl: product.imageUrl,
   };

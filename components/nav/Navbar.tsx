@@ -11,6 +11,7 @@ import logo from '@/public/logo.svg';
 
 export default function Navbar() {
   const { isMenuOpen, toggleMenu } = useStore();
+  const selectedBranchSlug = useStore((state) => state.selectedBranchSlug);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -18,6 +19,8 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  const menuLink = selectedBranchSlug ? `/${selectedBranchSlug}` : '/';
 
   return (
     <motion.nav
@@ -66,11 +69,18 @@ export default function Navbar() {
             Home
           </Link>
           <Link
-            href="/menu"
+            href="/alreem"
             onClick={toggleMenu}
             className="transform transition-colors duration-300 hover:scale-105 hover:text-amber-500"
           >
-            Order Now
+            Al Reem Island
+          </Link>
+          <Link
+            href="/adnec"
+            onClick={toggleMenu}
+            className="transform transition-colors duration-300 hover:scale-105 hover:text-amber-500"
+          >
+            ADNEC
           </Link>
           <Link
             href="/menu.pdf"

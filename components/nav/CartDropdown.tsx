@@ -28,6 +28,17 @@ export default function CartDropdown() {
   const decrementCartItem = useStore((state) => state.decrementCartItem);
   const removeCartItem = useStore((state) => state.removeCartItem);
   const clearCart = useStore((state) => state.clearCart);
+  const storedBranchSlug = useStore((state) => state.selectedBranchSlug);
+
+  // Derive branch from cart items (most reliable), then store, then URL, then default
+  const cartBranchSlug = cartItems.length > 0 ? cartItems[0].branchSlug : null;
+  const KNOWN_BRANCHES = ['alreem', 'adnec'];
+  const pathSegment = pathname.split('/')[1];
+  const selectedBranchSlug =
+    cartBranchSlug
+    ?? storedBranchSlug
+    ?? (KNOWN_BRANCHES.includes(pathSegment) ? pathSegment : null)
+    ?? 'alreem';
 
   useEffect(() => {
     const syncHydration = () => {
@@ -199,7 +210,7 @@ export default function CartDropdown() {
                 </span>
               </div>
               <Link
-                href="/checkout"
+                href={selectedBranchSlug ? `/${selectedBranchSlug}/checkout` : '/'}
                 onClick={() => setIsOpen(false)}
                 className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#a56c3f] transition-colors hover:bg-[#f7ece2]"
               >

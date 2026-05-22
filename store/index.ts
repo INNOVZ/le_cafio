@@ -6,6 +6,7 @@ export interface CartProduct {
   name: string;
   imageUrl: string;
   price: number;
+  branchSlug: string;
 }
 
 export interface CartItem extends CartProduct {
@@ -17,8 +18,11 @@ interface AppState {
   cartItems: CartItem[];
   cartCount: number;
   selectedMenuCategoryId: 'all' | string;
+  selectedBranchId: string | null;
+  selectedBranchSlug: string | null;
   toggleMenu: () => void;
   setSelectedMenuCategory: (categoryId: 'all' | string) => void;
+  setSelectedBranch: (slug: string, id: string) => void;
   addToCart: (product: CartProduct, quantity: number) => void;
   incrementCartItem: (productId: string) => void;
   decrementCartItem: (productId: string) => void;
@@ -37,8 +41,26 @@ export const useStore = create<AppState>()(
       cartItems: [],
       cartCount: 0,
       selectedMenuCategoryId: 'all',
+      selectedBranchId: null,
+      selectedBranchSlug: null,
       setSelectedMenuCategory: (categoryId) =>
         set({ selectedMenuCategoryId: categoryId }),
+      setSelectedBranch: (slug, id) =>
+        set((state) => {
+          // If switching to a different branch, clear the cart
+          if (state.selectedBranchId && state.selectedBranchId !== id) {
+            return {
+              selectedBranchSlug: slug,
+              selectedBranchId: id,
+              cartItems: [],
+              cartCount: 0,
+            };
+          }
+          return {
+            selectedBranchSlug: slug,
+            selectedBranchId: id,
+          };
+        }),
       toggleMenu: () =>
         set((state) => ({ isMenuOpen: !state.isMenuOpen })),
       addToCart: (product, quantity) =>
@@ -106,6 +128,8 @@ export const useStore = create<AppState>()(
       partialize: (state) => ({
         cartItems: state.cartItems,
         cartCount: state.cartCount,
+        selectedBranchId: state.selectedBranchId,
+        selectedBranchSlug: state.selectedBranchSlug,
       }),
     }
   )
