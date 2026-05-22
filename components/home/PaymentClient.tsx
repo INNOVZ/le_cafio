@@ -32,7 +32,6 @@ export default function PaymentClient({
   const router = useRouter();
   const [isHydrated, setIsHydrated] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-
   const cartItems = useStore((state) => state.cartItems);
   const clearCart = useStore((state) => state.clearCart);
 
@@ -63,7 +62,7 @@ export default function PaymentClient({
   );
   const resetCheckout = useCheckoutStore((state) => state.resetCheckout);
 
-  const [successWhatsappUrl, setSuccessWhatsappUrl] = useState<string | null>(null);
+
 
   useEffect(() => {
     const syncHydration = () => {
@@ -107,7 +106,7 @@ export default function PaymentClient({
   const total = subtotal + serviceFee + deliveryFee;
 
   useEffect(() => {
-    if (!isHydrated || successWhatsappUrl) {
+    if (!isHydrated) {
       return;
     }
 
@@ -138,7 +137,6 @@ export default function PaymentClient({
     phone,
     restaurantLocationId,
     router,
-    successWhatsappUrl,
   ]);
 
   async function handleConfirmPayment() {
@@ -193,12 +191,16 @@ export default function PaymentClient({
 
       clearCart();
       resetCheckout();
-      toast.success('Order created successfully!', {
+      toast.success('Order placed! Opening WhatsApp...', {
         position: 'bottom-right',
       });
 
-      setSuccessWhatsappUrl(result.whatsappUrl);
+      // Open WhatsApp immediately in a new tab
+      window.open(result.whatsappUrl, '_blank', 'noopener,noreferrer');
+
+      // Redirect to home after a short delay
       setIsSubmitting(false);
+      router.push('/');
     } catch (error) {
       console.error('COD order error:', error);
       toast.error(
@@ -239,35 +241,7 @@ export default function PaymentClient({
       ? 'Creating COD Order...'
       : 'Processing Payment...';
 
-  if (successWhatsappUrl) {
-    return (
-      <div className="mx-auto w-full max-w-7xl px-5 py-8 md:px-10 md:py-12">
-        <div className="flex flex-col items-center justify-center space-y-6 rounded-[2rem] border border-[#eadfd6] bg-[#fffaf5] px-6 py-16 text-center shadow-[0_18px_45px_rgba(74,45,27,0.06)]">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#25D366] text-white">
-            <MessageCircle className="h-8 w-8" />
-          </div>
-          <div className="space-y-2">
-            <h1 className="text-3xl font-semibold tracking-tight text-[#3f2418]">
-              Order Placed Successfully!
-            </h1>
-            <p className="max-w-md text-sm text-[#7d6658]">
-              Your order has been recorded. Click the button below to send your
-              order details securely to our team via WhatsApp.
-            </p>
-          </div>
-          <a
-            href={successWhatsappUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-4 inline-flex items-center justify-center gap-2 rounded-full bg-[#25D366] px-8 py-4 text-base font-semibold text-white transition-colors hover:bg-[#1ebd5a] active:bg-[#1ca851]"
-          >
-            <MessageCircle className="h-5 w-5 fill-current" />
-            Order via WhatsApp
-          </a>
-        </div>
-      </div>
-    );
-  }
+
 
   if (!isHydrated) {
     return (

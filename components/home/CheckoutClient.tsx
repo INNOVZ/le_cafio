@@ -669,11 +669,7 @@ export default function CheckoutClient({
                     {
                       id: 'CASH_ON_DELIVERY',
                       title: 'Cash on Delivery',
-                    },
-                    {
-                      id: 'CARD',
-                      title: 'Card Payment',
-                    },
+                    }
                   ] as const
                 ).map((method) => {
                   const isActive = paymentMethod === method.id;
