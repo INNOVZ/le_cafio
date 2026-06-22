@@ -7,6 +7,7 @@ import {
   PaymentProvider,
   PaymentStatus,
 } from '@/lib/generated/prisma/enums';
+import { KNOWN_BRANCH_SLUGS } from '@/lib/branch-slugs';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
 
@@ -99,7 +100,7 @@ export type DashboardProductFormValues = {
   description: string;
   price: number;
   categoryId: string;
-  restaurantLocationId: string | null;
+  restaurantLocationIds: string[];
   isAvailable: boolean;
   imageUrl: string;
 };
@@ -194,7 +195,15 @@ function parseProductPayload(formData: FormData) {
   const priceRaw = formData.get('price') as string | null;
   const isAvailableRaw = formData.get('isAvailable') as string | null;
   const categoryId = (formData.get('categoryId') as string | null)?.trim();
-  const restaurantLocationId = (formData.get('restaurantLocationId') as string | null)?.trim() || null;
+  const restaurantLocationIds = [
+    ...new Set(
+      formData
+        .getAll('restaurantLocationIds')
+        .filter((value): value is string => typeof value === 'string')
+        .map((value) => value.trim())
+        .filter(Boolean)
+    ),
+  ];
 
   if (!title || title.length < 5) {
     return {
@@ -239,6 +248,13 @@ function parseProductPayload(formData: FormData) {
     } as const;
   }
 
+  if (restaurantLocationIds.length === 0) {
+    return {
+      error: 'Please select at least one branch.',
+      values: null,
+    } as const;
+  }
+
   return {
     error: null,
     values: {
@@ -246,7 +262,7 @@ function parseProductPayload(formData: FormData) {
       description,
       price,
       categoryId,
-      restaurantLocationId,
+      restaurantLocationIds,
       isAvailable: isAvailableRaw === 'true',
     },
   } as const;
@@ -255,10 +271,26 @@ function parseProductPayload(formData: FormData) {
 function revalidateDashboardProductPaths(productId?: string) {
   revalidatePath('/dashboard/products');
   revalidatePath('/dashboard/products/newproduct');
-  revalidatePath('/menu');
+  for (const branchSlug of KNOWN_BRANCH_SLUGS) {
+    revalidatePath(`/${branchSlug}`);
+  }
   if (productId) {
     revalidatePath(`/dashboard/products/${productId}/edit`);
   }
+}
+
+async function validateProductBranchIds(restaurantLocationIds: string[]) {
+  const locations = await prisma.restaurantLocation.findMany({
+    where: {
+      id: { in: restaurantLocationIds },
+      isActive: true,
+    },
+    select: { id: true },
+  });
+
+  return locations.length === restaurantLocationIds.length
+    ? null
+    : 'One or more selected branches are unavailable.';
 }
 
 function revalidateDashboardCategoryPaths(categoryId?: string) {
@@ -433,6 +465,13 @@ export async function createProduct(
     return { error: parsed.error, success: false };
   }
 
+  const branchValidationError = await validateProductBranchIds(
+    parsed.values.restaurantLocationIds
+  );
+  if (branchValidationError) {
+    return { error: branchValidationError, success: false };
+  }
+
   const imageFile = formData.get('image') as File | null;
   const imageUrl = await uploadImage(imageFile, 'products');
 
@@ -451,7 +490,11 @@ export async function createProduct(
         imageUrl,
         isAvailable: parsed.values.isAvailable,
         isActive: true,
-        restaurantLocationId: parsed.values.restaurantLocationId,
+        branchAssignments: {
+          create: parsed.values.restaurantLocationIds.map(
+            (restaurantLocationId) => ({ restaurantLocationId })
+          ),
+        },
       },
     });
 
@@ -481,6 +524,13 @@ export async function updateProduct(
     return { error: parsed.error, success: false };
   }
 
+  const branchValidationError = await validateProductBranchIds(
+    parsed.values.restaurantLocationIds
+  );
+  if (branchValidationError) {
+    return { error: branchValidationError, success: false };
+  }
+
   const existingProduct = await prisma.product.findUnique({
     where: { id },
     select: {
@@ -508,7 +558,12 @@ export async function updateProduct(
         imageUrl: uploadedImageUrl ?? existingProduct.imageUrl,
         isAvailable: parsed.values.isAvailable,
         isActive: existingProduct.isActive,
-        restaurantLocationId: parsed.values.restaurantLocationId,
+        branchAssignments: {
+          deleteMany: {},
+          create: parsed.values.restaurantLocationIds.map(
+            (restaurantLocationId) => ({ restaurantLocationId })
+          ),
+        },
       },
     });
 
@@ -891,7 +946,11 @@ export async function getProducts(categoryId?: string, restaurantLocationId?: st
       isActive: true,
       ...(categoryId ? { categoryId } : {}),
       ...(restaurantLocationId
-        ? { OR: [{ restaurantLocationId }, { restaurantLocationId: null }] }
+        ? {
+            branchAssignments: {
+              some: { restaurantLocationId },
+            },
+          }
         : {}),
     },
     orderBy: [{ category: { sortOrder: 'asc' } }, { name: 'asc' }],
@@ -951,7 +1010,11 @@ export async function getProductById(
       description: true,
       price: true,
       categoryId: true,
-      restaurantLocationId: true,
+      branchAssignments: {
+        select: {
+          restaurantLocationId: true,
+        },
+      },
       isAvailable: true,
       imageUrl: true,
     },
@@ -967,7 +1030,9 @@ export async function getProductById(
     description: product.description,
     price: Number(product.price),
     categoryId: product.categoryId,
-    restaurantLocationId: product.restaurantLocationId,
+    restaurantLocationIds: product.branchAssignments.map(
+      (assignment) => assignment.restaurantLocationId
+    ),
     isAvailable: product.isAvailable,
     imageUrl: product.imageUrl,
   };

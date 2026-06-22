@@ -176,13 +176,13 @@ model RestaurantLocation {
   country          String   @default("IT")
   latitude         Decimal  @db.Decimal(10, 7)
   longitude        Decimal  @db.Decimal(10, 7)
-  deliveryRadiusKm Decimal  @default(5) @db.Decimal(5, 2)
+  deliveryRadiusKm Decimal  @default(2) @db.Decimal(5, 2)
   isActive         Boolean  @default(true)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
-  orders   Order[]
-  products Product[]
+  orders             Order[]
+  productAssignments ProductBranchAssignment[]
 
   @@index([isActive, city])
 }
@@ -206,7 +206,6 @@ model Category {
 model Product {
   id                   String   @id @default(uuid()) @db.Uuid
   categoryId           String   @db.Uuid
-  restaurantLocationId String?  @db.Uuid
   name                 String
   slug                 String   @unique
   sku                  String?  @unique
@@ -224,13 +223,24 @@ model Product {
   updatedAt            DateTime @updatedAt
 
   category           Category             @relation(fields: [categoryId], references: [id], onDelete: Restrict)
-  restaurantLocation RestaurantLocation?  @relation(fields: [restaurantLocationId], references: [id], onDelete: SetNull)
+  branchAssignments  ProductBranchAssignment[]
   optionGroups       ProductOptionGroup[]
   cartItems          CartItem[]
   orderItems         OrderItem[]
 
   @@index([categoryId, isActive, isAvailable])
-  @@index([restaurantLocationId])
+}
+
+model ProductBranchAssignment {
+  productId            String   @db.Uuid
+  restaurantLocationId String   @db.Uuid
+  createdAt            DateTime @default(now())
+
+  product            Product            @relation(fields: [productId], references: [id], onDelete: Cascade)
+  restaurantLocation RestaurantLocation @relation(fields: [restaurantLocationId], references: [id], onDelete: Cascade)
+
+  @@id([productId, restaurantLocationId])
+  @@index([restaurantLocationId, productId])
 }
 
 model ProductOptionGroup {

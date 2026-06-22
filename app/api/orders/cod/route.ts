@@ -91,11 +91,14 @@ export async function POST(request: Request) {
       );
     }
 
-    const productIds = items.map((item) => item.productId);
+    const productIds = [...new Set(items.map((item) => item.productId))];
     const products = await prisma.product.findMany({
       where: {
         id: { in: productIds },
         isActive: true,
+        branchAssignments: {
+          some: { restaurantLocationId },
+        },
       },
       select: {
         id: true,
@@ -114,7 +117,9 @@ export async function POST(request: Request) {
       );
     }
 
-    const productMap = new Map(products.map((product) => [product.id, product]));
+    const productMap = new Map(
+      products.map((product) => [product.id, product])
+    );
     const unavailableProduct = products.find((product) => !product.isAvailable);
 
     if (unavailableProduct) {
@@ -164,7 +169,10 @@ export async function POST(request: Request) {
         );
       }
 
-      const place = await fetchPlaceDetails(deliveryPlaceId, deliverySessionToken);
+      const place = await fetchPlaceDetails(
+        deliveryPlaceId,
+        deliverySessionToken
+      );
       const distanceKm = getDistanceKm(
         Number(restaurantLocation.latitude),
         Number(restaurantLocation.longitude),

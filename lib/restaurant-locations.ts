@@ -17,7 +17,7 @@ export const restaurantLocations: RestaurantLocation[] = [
     city: 'Dubai',
     latitude: 25.2048,
     longitude: 55.2708,
-    radiusKm: 5,
+    radiusKm: 2,
   },
   {
     id: 'cafio-branch-2',
@@ -26,7 +26,7 @@ export const restaurantLocations: RestaurantLocation[] = [
     city: 'Dubai',
     latitude: 25.0804,
     longitude: 55.1403,
-    radiusKm: 5,
+    radiusKm: 2,
   },
 ];
 

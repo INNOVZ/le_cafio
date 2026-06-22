@@ -2,6 +2,8 @@ import { Button } from '@/components/ui/button';
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
+import Image from 'next/image';
+import { BadgePlus } from 'lucide-react';
 
 const category = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
@@ -24,7 +26,7 @@ const category = async ({ params }: { params: Promise<{ id: string }> }) => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">{category.name}</h1>
-          <p className="text-sm text-muted-foreground">
+          <p className="text-muted-foreground text-sm">
             {category.products.length} product
             {category.products.length === 1 ? '' : 's'}
           </p>
@@ -37,13 +39,13 @@ const category = async ({ params }: { params: Promise<{ id: string }> }) => {
           </Link>
           <Link href="/dashboard/products/newproduct">
             <Button className="flex cursor-pointer flex-row items-center gap-2">
-              Add Product <span className="h-2 w-2 rounded-full bg-white"></span>
+              Add Product <BadgePlus />
             </Button>
           </Link>
         </div>
       </div>
 
-      <div className="mt-6 space-y-3">
+      <div className="mt-6 grid grid-cols-1 gap-3 md:grid-cols-3">
         {category.products.length === 0 ? (
           <p>No products in this category.</p>
         ) : (
@@ -51,10 +53,27 @@ const category = async ({ params }: { params: Promise<{ id: string }> }) => {
             <Link
               key={product.id}
               href={`/dashboard/products/${product.id}/edit`}
-              className="block rounded border p-4"
             >
-              <p className="font-medium">{product.name}</p>
-              <p>{String(product.price)}</p>
+              <div className="bg-cafio-sec flex items-center gap-3 rounded-lg px-2 py-2 shadow-sm border border-m-red-950">
+                {product.imageUrl ? (
+                  <Image
+                    src={product.imageUrl}
+                    alt={product.name}
+                    width={64}
+                    height={64}
+                    className="h-16 w-16 rounded-md object-cover"
+                  />
+                ) : (
+                  <div className="bg-muted h-16 w-16 rounded-md" />
+                )}
+                <div className="flex flex-col">
+                  <div className="text-lg font-bold">{product.name}</div>
+                  <div className="text-muted-foreground text-xs">
+                    {product.isAvailable ? 'Available' : 'Unavailable'} ·{' '}
+                    {product.isActive ? 'Active' : 'Inactive'}
+                  </div>
+                </div>
+              </div>
             </Link>
           ))
         )}

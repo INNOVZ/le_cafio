@@ -34,7 +34,7 @@ async function main() {
       country: 'AE',
       latitude: '24.4178452712677',
       longitude: '54.442165413890734',
-      deliveryRadiusKm: '10.00',
+      deliveryRadiusKm: '2.00',
       isActive: true,
     },
     {
@@ -48,7 +48,7 @@ async function main() {
       country: 'AE',
       latitude: '24.48838442290973',
       longitude: '54.408778539462986',
-      deliveryRadiusKm: '10.00',
+      deliveryRadiusKm: '2.00',
       isActive: true,
     },
   ];

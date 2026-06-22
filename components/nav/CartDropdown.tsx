@@ -35,10 +35,10 @@ export default function CartDropdown() {
   const KNOWN_BRANCHES = ['alreem', 'adnec'];
   const pathSegment = pathname.split('/')[1];
   const selectedBranchSlug =
-    cartBranchSlug
-    ?? storedBranchSlug
-    ?? (KNOWN_BRANCHES.includes(pathSegment) ? pathSegment : null)
-    ?? 'alreem';
+    cartBranchSlug ??
+    storedBranchSlug ??
+    (KNOWN_BRANCHES.includes(pathSegment) ? pathSegment : null) ??
+    'alreem';
 
   useEffect(() => {
     const syncHydration = () => {
@@ -210,7 +210,9 @@ export default function CartDropdown() {
                 </span>
               </div>
               <Link
-                href={selectedBranchSlug ? `/${selectedBranchSlug}/checkout` : '/'}
+                href={
+                  selectedBranchSlug ? `/${selectedBranchSlug}/checkout` : '/'
+                }
                 onClick={() => setIsOpen(false)}
                 className="mt-3 inline-flex w-full items-center justify-center rounded-full bg-white px-4 py-2 text-sm font-semibold text-[#a56c3f] transition-colors hover:bg-[#f7ece2]"
               >

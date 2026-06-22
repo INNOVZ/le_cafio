@@ -50,7 +50,9 @@ const formSchema = z.object({
     .max(200, 'Description must be at most 200 characters.'),
   price: z.number().min(0, 'Price must be at least 0.'),
   categoryId: z.string().min(1, 'Please select a category.'),
-  restaurantLocationId: z.string().optional(),
+  restaurantLocationIds: z
+    .array(z.string())
+    .min(1, 'Please select at least one branch.'),
   isAvailable: z.boolean(),
   image: z.any().optional(),
 });
@@ -70,7 +72,7 @@ function getDefaultValues(initialValues?: DashboardProductFormValues): FormValue
     description: initialValues?.description ?? '',
     price: initialValues?.price ?? 0,
     categoryId: initialValues?.categoryId ?? '',
-    restaurantLocationId: initialValues?.restaurantLocationId ?? '',
+    restaurantLocationIds: initialValues?.restaurantLocationIds ?? [],
     isAvailable: initialValues?.isAvailable ?? true,
     image: undefined,
   };
@@ -112,8 +114,8 @@ export default function ProductForm({
       formData.append('categoryId', data.categoryId);
       formData.append('isAvailable', String(data.isAvailable));
 
-      if (data.restaurantLocationId) {
-        formData.append('restaurantLocationId', data.restaurantLocationId);
+      for (const restaurantLocationId of data.restaurantLocationIds) {
+        formData.append('restaurantLocationIds', restaurantLocationId);
       }
 
       if (mode === 'edit' && initialValues?.id) {
@@ -291,36 +293,54 @@ export default function ProductForm({
             />
 
             <Controller
-              name="restaurantLocationId"
+              name="restaurantLocationIds"
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={`${formId}-branch`}>
-                    Branch
+                  <FieldLabel>
+                    Available at branches
                   </FieldLabel>
-                  <Select value={field.value ?? ''} onValueChange={field.onChange}>
-                    <SelectTrigger
-                      id={`${formId}-branch`}
-                      aria-invalid={fieldState.invalid}
+                  {restaurantLocations.length === 0 ? (
+                    <p className="rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+                      No active branches found.
+                    </p>
+                  ) : (
+                    <div
+                      role="group"
+                      aria-label="Product branches"
+                      className="grid gap-2 sm:grid-cols-2"
                     >
-                      <SelectValue placeholder="Select a branch..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {restaurantLocations.length === 0 ? (
-                        <SelectItem value="__none" disabled>
-                          No branches found
-                        </SelectItem>
-                      ) : (
-                        restaurantLocations.map((loc) => (
-                          <SelectItem key={loc.id} value={loc.id}>
+                      {restaurantLocations.map((loc) => {
+                        const isSelected = field.value.includes(loc.id);
+
+                        return (
+                          <label
+                            key={loc.id}
+                            className="flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm font-medium transition-colors has-[:checked]:border-primary has-[:checked]:bg-primary/5"
+                          >
+                            <input
+                              id={`${formId}-branch-${loc.id}`}
+                              type="checkbox"
+                              checked={isSelected}
+                              aria-invalid={fieldState.invalid}
+                              onChange={(event) =>
+                                field.onChange(
+                                  event.target.checked
+                                    ? [...field.value, loc.id]
+                                    : field.value.filter((id) => id !== loc.id)
+                                )
+                              }
+                              className="size-4 accent-primary"
+                            />
                             {loc.name}
-                          </SelectItem>
-                        ))
-                      )}
-                    </SelectContent>
-                  </Select>
+                          </label>
+                        );
+                      })}
+                    </div>
+                  )}
                   <FieldDescription>
-                    Assign this product to a specific branch menu.
+                    Select every branch where this product should appear. At
+                    least one branch is required.
                   </FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />

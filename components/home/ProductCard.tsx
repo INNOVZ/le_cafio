@@ -1,11 +1,15 @@
-import { getProducts, getRestaurantLocationBySlug } from '@/lib/db-actions';
-import { resolveDbSlug } from '@/lib/branch-slugs';
+import { getProducts } from '@/lib/db-actions';
 
 import ProductCardClient from '@/components/home/ProductCardClient';
 
-export default async function ProductCard({ branchSlug }: { branchSlug: string }) {
-  const branch = await getRestaurantLocationBySlug(resolveDbSlug(branchSlug));
-  const products = await getProducts(undefined, branch?.id);
+export default async function ProductCard({
+  branchId,
+  branchSlug,
+}: {
+  branchId: string;
+  branchSlug: string;
+}) {
+  const products = await getProducts(undefined, branchId);
 
   return <ProductCardClient products={products} branchSlug={branchSlug} />;
 }
