@@ -4,6 +4,10 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import Image from 'next/image';
 import { BadgePlus } from 'lucide-react';
+import {
+  DeleteCategoryButton,
+  DeleteProductButton,
+} from '@/components/dashboard/DeleteCatalogEntityButton';
 
 const category = async ({ params }: { params: Promise<{ id: string }> }) => {
   const { id } = await params;
@@ -12,7 +16,6 @@ const category = async ({ params }: { params: Promise<{ id: string }> }) => {
     where: { id },
     include: {
       products: {
-        where: { isActive: true },
         orderBy: { createdAt: 'desc' },
       },
     },
@@ -37,6 +40,12 @@ const category = async ({ params }: { params: Promise<{ id: string }> }) => {
               Edit Category
             </Button>
           </Link>
+          <DeleteCategoryButton
+            categoryId={category.id}
+            categoryName={category.name}
+            productCount={category.products.length}
+            redirectAfterDelete
+          />
           <Link href="/dashboard/products/newproduct">
             <Button className="flex cursor-pointer flex-row items-center gap-2">
               Add Product <BadgePlus />
@@ -50,11 +59,14 @@ const category = async ({ params }: { params: Promise<{ id: string }> }) => {
           <p>No products in this category.</p>
         ) : (
           category.products.map((product) => (
-            <Link
+            <div
               key={product.id}
-              href={`/dashboard/products/${product.id}/edit`}
+              className="bg-cafio-sec flex items-center gap-3 rounded-lg border border-m-red-950 px-2 py-2 shadow-sm"
             >
-              <div className="bg-cafio-sec flex items-center gap-3 rounded-lg px-2 py-2 shadow-sm border border-m-red-950">
+              <Link
+                href={`/dashboard/products/${product.id}/edit`}
+                className="flex min-w-0 flex-1 items-center gap-3"
+              >
                 {product.imageUrl ? (
                   <Image
                     src={product.imageUrl}
@@ -73,8 +85,12 @@ const category = async ({ params }: { params: Promise<{ id: string }> }) => {
                     {product.isActive ? 'Active' : 'Inactive'}
                   </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+              <DeleteProductButton
+                productId={product.id}
+                productName={product.name}
+              />
+            </div>
           ))
         )}
       </div>

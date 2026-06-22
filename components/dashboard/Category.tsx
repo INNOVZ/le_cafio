@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { DeleteCategoryButton } from '@/components/dashboard/DeleteCatalogEntityButton';
 import { getDashboardCategories } from '@/lib/db-actions';
 
 export default async function ListCategories() {
@@ -12,11 +13,14 @@ export default async function ListCategories() {
           <p>No categories found.</p>
         ) : (
           categories.map((category) => (
-            <Link
+            <div
               key={category.id}
-              href={`/dashboard/categories/${category.id}`}
+              className="bg-cafio-sec flex items-center gap-3 rounded-lg px-2 py-2 shadow-sm"
             >
-              <div className="bg-cafio-sec flex items-center gap-3 rounded-lg px-2 py-2 shadow-sm">
+              <Link
+                href={`/dashboard/categories/${category.id}`}
+                className="flex min-w-0 flex-1 items-center gap-3"
+              >
                 {category.imageUrl ? (
                   <Image
                     src={category.imageUrl}
@@ -39,8 +43,13 @@ export default async function ListCategories() {
                     {category.sortOrder}
                   </div>
                 </div>
-              </div>
-            </Link>
+              </Link>
+              <DeleteCategoryButton
+                categoryId={category.id}
+                categoryName={category.name}
+                productCount={category._count.products}
+              />
+            </div>
           ))
         )}
       </div>

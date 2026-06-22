@@ -56,7 +56,41 @@ function QuantitySelector({
   );
 }
 
-function ProductCardItem({ product, branchSlug }: { product: ProductListItem; branchSlug: string }) {
+function ProductImage({ src, alt }: { src: string; alt: string }) {
+  const [hasImageError, setHasImageError] = useState(false);
+
+  if (hasImageError) {
+    return (
+      <div
+        role="img"
+        aria-label={`${alt} image unavailable`}
+        className="flex h-full w-full items-center justify-center bg-[#f3eee8] px-4 text-center text-xs font-medium text-[#806b5f]"
+      >
+        Image unavailable
+      </div>
+    );
+  }
+
+  return (
+    <Image
+      src={src}
+      alt={alt}
+      fill
+      unoptimized
+      sizes="(max-width: 768px) 100vw, 320px"
+      className="object-cover object-center"
+      onError={() => setHasImageError(true)}
+    />
+  );
+}
+
+function ProductCardItem({
+  product,
+  branchSlug,
+}: {
+  product: ProductListItem;
+  branchSlug: string;
+}) {
   const addToCart = useStore((state) => state.addToCart);
   const [quantity, setQuantity] = useState(1);
 
@@ -81,12 +115,10 @@ function ProductCardItem({ product, branchSlug }: { product: ProductListItem; br
   return (
     <article className="grid h-full grid-rows-[180px_auto_auto_1fr_auto] rounded-3xl border border-[#e4ddd5] bg-[#fffdf9] p-2 shadow-[0_18px_45px_rgba(74,45,27,0.06)] transition-transform duration-300 hover:scale-101">
       <div className="relative h-45 w-full overflow-hidden rounded-t-2xl bg-[#f3eee8]">
-        <Image
+        <ProductImage
+          key={product.imageUrl}
           src={product.imageUrl}
           alt={product.name}
-          fill
-          sizes="(max-width: 768px) 100vw, 320px"
-          className="object-cover"
         />
       </div>
 
@@ -186,13 +218,17 @@ export default function ProductCardClient({
           {groupedProducts.map((group) => (
             <section key={group.categoryId} className="space-y-5">
               <div className="border-b border-[#eadfd6] pb-3">
-                <h2 className="text-cafio text-lg font-semibold uppercase tracking-[0.18em]">
+                <h2 className="text-cafio text-lg font-semibold tracking-[0.18em] uppercase">
                   {group.categoryName}
                 </h2>
               </div>
               <div className="mx-auto grid grid-cols-1 gap-6 md:grid-cols-4">
                 {group.products.map((product) => (
-                  <ProductCardItem key={product.id} product={product} branchSlug={branchSlug} />
+                  <ProductCardItem
+                    key={product.id}
+                    product={product}
+                    branchSlug={branchSlug}
+                  />
                 ))}
               </div>
             </section>
@@ -201,7 +237,11 @@ export default function ProductCardClient({
       ) : (
         <div className="mx-auto grid grid-cols-1 gap-6 md:grid-cols-4">
           {visibleProducts.map((product) => (
-            <ProductCardItem key={product.id} product={product} branchSlug={branchSlug} />
+            <ProductCardItem
+              key={product.id}
+              product={product}
+              branchSlug={branchSlug}
+            />
           ))}
         </div>
       )}

@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import { DeleteProductButton } from '@/components/dashboard/DeleteCatalogEntityButton';
 import { getDashboardProducts } from '@/lib/db-actions';
 
 export default async function ListProducts() {
@@ -17,13 +18,13 @@ export default async function ListProducts() {
           <>
             
               {products.map((product) => (
-            
-                <Link
+                <div
                   key={product.id}
-                  href={`/dashboard/products/${product.id}/edit`}
+                  className="bg-cafio-sec flex items-center gap-3 rounded-lg px-2 py-2 shadow-sm"
                 >
-                  <div
-                    className="bg-cafio-sec flex items-center gap-3 rounded-lg px-2 py-2 shadow-sm"
+                  <Link
+                    href={`/dashboard/products/${product.id}/edit`}
+                    className="flex min-w-0 flex-1 items-center gap-3"
                   >
                     {product.imageUrl ? (
                       <Image
@@ -46,8 +47,12 @@ export default async function ListProducts() {
                         {product.isActive ? 'Active' : 'Inactive'}
                       </div>
                     </div>
-                  </div>
-                </Link>
+                  </Link>
+                  <DeleteProductButton
+                    productId={product.id}
+                    productName={product.name}
+                  />
+                </div>
               ))}
         </>)}
       </div>

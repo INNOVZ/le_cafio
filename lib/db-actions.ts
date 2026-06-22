@@ -10,6 +10,7 @@ import {
 import { KNOWN_BRANCH_SLUGS } from '@/lib/branch-slugs';
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/utils/supabase/server';
+import { z } from 'zod';
 
 export type RestaurantLocationListItem = {
   id: string;
@@ -132,6 +133,7 @@ async function uploadImage(
     const { error: uploadError } = await supabase.storage
       .from('product-images')
       .upload(path, imageFile, {
+        cacheControl: '31536000',
         contentType: imageFile.type,
         upsert: false,
       });
@@ -297,10 +299,32 @@ function revalidateDashboardCategoryPaths(categoryId?: string) {
   revalidatePath('/dashboard/categories');
   revalidatePath('/dashboard/categories/newcategory');
   revalidatePath('/dashboard/products/newproduct');
-  revalidatePath('/menu');
+  for (const branchSlug of KNOWN_BRANCH_SLUGS) {
+    revalidatePath(`/${branchSlug}`);
+  }
   if (categoryId) {
     revalidatePath(`/dashboard/categories/${categoryId}`);
     revalidatePath(`/dashboard/categories/${categoryId}/edit`);
+  }
+}
+
+function parseEntityId(id: string) {
+  const result = z.string().uuid().safeParse(id.trim());
+  return result.success ? result.data : null;
+}
+
+async function requireDashboardSession() {
+  try {
+    const supabase = await createClient();
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser();
+
+    return error || !user ? 'You must sign in to manage the catalog.' : null;
+  } catch (err) {
+    console.error('Dashboard session validation error:', err);
+    return 'Unable to verify your session. Please sign in again.';
   }
 }
 
@@ -572,6 +596,109 @@ export async function updateProduct(
     console.error('Product update error:', err);
     return {
       error: 'Failed to update the product. Please try again.',
+      success: false,
+    };
+  }
+
+  return { error: null, success: true };
+}
+
+export async function deleteProduct(id: string): Promise<ProductActionState> {
+  const productId = parseEntityId(id);
+  if (!productId) {
+    return { error: 'Invalid product id.', success: false };
+  }
+
+  const sessionError = await requireDashboardSession();
+  if (sessionError) {
+    return { error: sessionError, success: false };
+  }
+
+  try {
+    const deletedProduct = await prisma.$transaction(async (tx) => {
+      const product = await tx.product.findUnique({
+        where: { id: productId },
+        select: { id: true, categoryId: true },
+      });
+
+      if (!product) {
+        return null;
+      }
+
+      // Cart items reference products restrictively; orders keep their snapshots
+      // and their nullable productId is set to null by the database relation.
+      await tx.cartItem.deleteMany({ where: { productId } });
+      await tx.product.delete({ where: { id: productId } });
+
+      return product;
+    });
+
+    if (!deletedProduct) {
+      return { error: 'Product not found.', success: false };
+    }
+
+    revalidateDashboardProductPaths(productId);
+    revalidateDashboardCategoryPaths(deletedProduct.categoryId);
+  } catch (err) {
+    console.error('Product deletion error:', err);
+    return {
+      error: 'Failed to delete the product. Please try again.',
+      success: false,
+    };
+  }
+
+  return { error: null, success: true };
+}
+
+export async function deleteCategory(id: string): Promise<ProductActionState> {
+  const categoryId = parseEntityId(id);
+  if (!categoryId) {
+    return { error: 'Invalid category id.', success: false };
+  }
+
+  const sessionError = await requireDashboardSession();
+  if (sessionError) {
+    return { error: sessionError, success: false };
+  }
+
+  try {
+    const deleted = await prisma.$transaction(async (tx) => {
+      const category = await tx.category.findUnique({
+        where: { id: categoryId },
+        select: { id: true },
+      });
+
+      if (!category) {
+        return false;
+      }
+
+      const products = await tx.product.findMany({
+        where: { categoryId },
+        select: { id: true },
+      });
+      const productIds = products.map((product) => product.id);
+
+      if (productIds.length > 0) {
+        await tx.cartItem.deleteMany({
+          where: { productId: { in: productIds } },
+        });
+        await tx.product.deleteMany({ where: { id: { in: productIds } } });
+      }
+
+      await tx.category.delete({ where: { id: categoryId } });
+      return true;
+    });
+
+    if (!deleted) {
+      return { error: 'Category not found.', success: false };
+    }
+
+    revalidateDashboardProductPaths();
+    revalidateDashboardCategoryPaths(categoryId);
+  } catch (err) {
+    console.error('Category deletion error:', err);
+    return {
+      error: 'Failed to delete the category. Please try again.',
       success: false,
     };
   }
