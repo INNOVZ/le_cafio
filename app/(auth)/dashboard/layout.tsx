@@ -2,8 +2,11 @@ import { redirect } from 'next/navigation';
 import { AppSidebar } from '@/components/nav/app-sidebar';
 import { SidebarInset, SidebarProvider } from '@/components/ui/sidebar';
 import { getDashboardUser } from '@/lib/dashboard-user';
+import { buildNoIndexMetadata } from '@/lib/seo';
 import { createClient } from '@/utils/supabase/server';
 import '@/app/globals.css';
+
+export const metadata = buildNoIndexMetadata('Dashboard');
 
 export default async function RootLayout({
   children,

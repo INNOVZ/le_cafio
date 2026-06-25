@@ -1,4 +1,7 @@
 import { SignupForm } from '@/components/dashboard/SignUpForm';
+import { buildNoIndexMetadata } from '@/lib/seo';
+
+export const metadata = buildNoIndexMetadata('Sign Up');
 
 export default function Page() {
   return (

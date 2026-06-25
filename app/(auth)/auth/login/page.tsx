@@ -1,6 +1,8 @@
-import { LoginForm } from "@/components/dashboard/LoginForm";
+import { LoginForm } from '@/components/dashboard/LoginForm';
+import { buildNoIndexMetadata } from '@/lib/seo';
 
-export const dynamic = "force-dynamic";
+export const dynamic = 'force-dynamic';
+export const metadata = buildNoIndexMetadata('Login');
 
 export default function Page() {
   return (

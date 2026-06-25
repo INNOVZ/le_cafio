@@ -369,15 +369,17 @@ export default function OrderTable({
                         )}
                       </span>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <span>Service Fee</span>
-                      <span>
-                        {formatCurrency(
-                          selectedOrder.taxTotal,
-                          selectedOrder.currency
-                        )}
-                      </span>
-                    </div>
+                    {selectedOrder.taxTotal > 0 ? (
+                      <div className="flex items-center justify-between">
+                        <span>Service Fee</span>
+                        <span>
+                          {formatCurrency(
+                            selectedOrder.taxTotal,
+                            selectedOrder.currency
+                          )}
+                        </span>
+                      </div>
+                    ) : null}
                     <div className="flex items-center justify-between">
                       <span>Delivery Fee</span>
                       <span>

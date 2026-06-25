@@ -35,6 +35,9 @@ export default function MenuClient({
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
+  const categoryRegionLabel = branchName
+    ? `${branchName} menu categories`
+    : 'Menu categories';
 
   useEffect(() => {
     setSelectedMenuCategory('all');
@@ -60,7 +63,9 @@ export default function MenuClient({
     }
 
     updateScrollControls();
-    container.addEventListener('scroll', updateScrollControls, { passive: true });
+    container.addEventListener('scroll', updateScrollControls, {
+      passive: true,
+    });
 
     const resizeObserver = new ResizeObserver(updateScrollControls);
     resizeObserver.observe(container);
@@ -94,12 +99,12 @@ export default function MenuClient({
   }
 
   return (
-    <section className="relative h-full w-full">
+    <section className="relative h-full w-full mt-8">
       <div
         ref={scrollContainerRef}
         role="region"
         tabIndex={0}
-        aria-label="Menu categories"
+        aria-label={categoryRegionLabel}
         onKeyDown={handleCategoryKeyDown}
         className="w-full overflow-x-auto scroll-smooth outline-none focus-visible:ring-2 focus-visible:ring-[#7e1208]/40"
       >
@@ -171,7 +176,7 @@ export default function MenuClient({
           <button
             type="button"
             onClick={() => scrollCategories('left')}
-            className="absolute top-1/2 left-2 z-20 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#e4ddd5] bg-white/95 text-[#7e1208] shadow-sm transition-colors hover:bg-[#fff7f4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7e1208]/40"
+            className="absolute top-1/2 left-2 z-20 inline-flex size-9 -translate-y-1/2 items-center justify-center rounded-full border border-[#e4ddd5] bg-white/95 text-[#7e1208] shadow-sm transition-colors hover:bg-[#fff7f4] focus-visible:ring-2 focus-visible:ring-[#7e1208]/40 focus-visible:outline-none"
             aria-label="Show previous categories"
             title="Previous categories"
           >
@@ -186,7 +191,7 @@ export default function MenuClient({
           <button
             type="button"
             onClick={() => scrollCategories('right')}
-            className="absolute top-1/2 right-2 z-20 inline-flex h-9 -translate-y-1/2 items-center justify-center gap-1 rounded-full border border-[#e4ddd5] bg-white/95 px-2.5 text-[#7e1208] shadow-sm transition-colors hover:bg-[#fff7f4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7e1208]/40"
+            className="absolute top-1/2 right-2 z-20 inline-flex h-9 -translate-y-1/2 items-center justify-center gap-1 rounded-full border border-[#e4ddd5] bg-white/95 px-2.5 text-[#7e1208] shadow-sm transition-colors hover:bg-[#fff7f4] focus-visible:ring-2 focus-visible:ring-[#7e1208]/40 focus-visible:outline-none"
             aria-label="Show more categories"
             title="More categories"
           >

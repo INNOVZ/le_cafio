@@ -2,11 +2,15 @@ import HomeFooter from '@/components/home/HomeFooter';
 import Menu from '@/components/home/Menu';
 import ProductCard from '@/components/home/ProductCard';
 import BranchSetter from '@/components/home/BranchSetter';
+import BranchSeoSection from '@/components/home/BranchSeoSection';
+import JsonLd from '@/components/seo/JsonLd';
 import { getRestaurantLocationBySlug } from '@/lib/db-actions';
 import { resolveDbSlug } from '@/lib/branch-slugs';
+import { buildBranchMetadata, buildRestaurantJsonLd } from '@/lib/seo';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
+export const metadata = buildBranchMetadata('adnec');
 
 export default async function Page() {
   const branch = await getRestaurantLocationBySlug(resolveDbSlug('adnec'));
@@ -17,7 +21,9 @@ export default async function Page() {
 
   return (
     <div className="mt-10 min-h-screen px-5 font-sans">
+      <JsonLd data={buildRestaurantJsonLd(branch, 'adnec')} />
       <BranchSetter slug="adnec" id={branch.id} />
+      <BranchSeoSection branch={branch} slug="adnec" />
       <div className="flex w-full items-center justify-between">
         <Menu branchSlug="adnec" />
       </div>

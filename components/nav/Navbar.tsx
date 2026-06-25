@@ -11,7 +11,6 @@ import logo from '@/public/logo.svg';
 
 export default function Navbar() {
   const { isMenuOpen, toggleMenu } = useStore();
-  const selectedBranchSlug = useStore((state) => state.selectedBranchSlug);
   const [scrolled, setScrolled] = useState(false);
 
   useEffect(() => {
@@ -19,8 +18,6 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
-
-  const menuLink = selectedBranchSlug ? `/${selectedBranchSlug}` : '/';
 
   return (
     <motion.nav

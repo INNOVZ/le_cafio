@@ -16,8 +16,15 @@ export type RestaurantLocationListItem = {
   id: string;
   name: string;
   slug: string;
+  phone: string | null;
+  whatsappPhoneE164: string | null;
+  email: string | null;
   addressLine: string;
+  addressLine2: string | null;
   city: string;
+  state: string | null;
+  postalCode: string | null;
+  country: string;
   latitude: number;
   longitude: number;
   deliveryRadiusKm: number;
@@ -105,6 +112,42 @@ export type DashboardProductFormValues = {
   isAvailable: boolean;
   imageUrl: string;
 };
+
+function mapRestaurantLocationListItem(location: {
+  id: string;
+  name: string;
+  slug: string;
+  phone: string | null;
+  whatsappPhoneE164: string | null;
+  email: string | null;
+  line1: string;
+  line2: string | null;
+  city: string;
+  state: string | null;
+  postalCode: string | null;
+  country: string;
+  latitude: unknown;
+  longitude: unknown;
+  deliveryRadiusKm: unknown;
+}): RestaurantLocationListItem {
+  return {
+    id: location.id,
+    name: location.name,
+    slug: location.slug,
+    phone: location.phone,
+    whatsappPhoneE164: location.whatsappPhoneE164,
+    email: location.email,
+    addressLine: location.line1,
+    addressLine2: location.line2,
+    city: location.city,
+    state: location.state,
+    postalCode: location.postalCode,
+    country: location.country,
+    latitude: Number(location.latitude),
+    longitude: Number(location.longitude),
+    deliveryRadiusKm: Number(location.deliveryRadiusKm),
+  };
+}
 
 function generateSlug(name: string): string {
   const base = name
@@ -716,31 +759,48 @@ export async function getRestaurantLocations(): Promise<
       id: true,
       name: true,
       slug: true,
+      phone: true,
+      whatsappPhoneE164: true,
+      email: true,
       line1: true,
+      line2: true,
       city: true,
+      state: true,
+      postalCode: true,
+      country: true,
       latitude: true,
       longitude: true,
       deliveryRadiusKm: true,
     },
   });
 
-  return locations.map((location) => ({
-    id: location.id,
-    name: location.name,
-    slug: location.slug,
-    addressLine: location.line1,
-    city: location.city,
-    latitude: Number(location.latitude),
-    longitude: Number(location.longitude),
-    deliveryRadiusKm: Number(location.deliveryRadiusKm),
-  }));
+  return locations.map(mapRestaurantLocationListItem);
 }
 
 export async function getRestaurantLocationBySlug(slug: string) {
-  return prisma.restaurantLocation.findUnique({
+  const location = await prisma.restaurantLocation.findUnique({
     where: { slug },
-    select: { id: true, name: true, slug: true },
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      phone: true,
+      whatsappPhoneE164: true,
+      email: true,
+      line1: true,
+      line2: true,
+      city: true,
+      state: true,
+      postalCode: true,
+      country: true,
+      latitude: true,
+      longitude: true,
+      deliveryRadiusKm: true,
+      isActive: true,
+    },
   });
+
+  return location?.isActive ? mapRestaurantLocationListItem(location) : null;
 }
 
 export async function getDashboardStats(): Promise<DashboardStats> {

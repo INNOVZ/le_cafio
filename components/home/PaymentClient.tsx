@@ -62,8 +62,6 @@ export default function PaymentClient({
   );
   const resetCheckout = useCheckoutStore((state) => state.resetCheckout);
 
-
-
   useEffect(() => {
     const syncHydration = () => {
       if (
@@ -98,12 +96,11 @@ export default function PaymentClient({
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const serviceFee = cartItems.length > 0 ? 5 : 0;
   const deliveryFee =
     fulfillmentType === 'DELIVERY' && deliveryCheckStatus === 'available'
       ? 12
       : 0;
-  const total = subtotal + serviceFee + deliveryFee;
+  const total = subtotal + deliveryFee;
 
   useEffect(() => {
     if (!isHydrated) {
@@ -135,6 +132,7 @@ export default function PaymentClient({
     isHydrated,
     paymentMethod,
     phone,
+    branchSlug,
     restaurantLocationId,
     router,
   ]);
@@ -396,10 +394,6 @@ export default function PaymentClient({
             <div className="flex items-center justify-between">
               <span>Subtotal</span>
               <span>{formatPrice(subtotal)}</span>
-            </div>
-            <div className="flex items-center justify-between">
-              <span>Service Fee</span>
-              <span>{formatPrice(serviceFee)}</span>
             </div>
             {fulfillmentType === 'DELIVERY' ? (
               <div className="flex items-center justify-between">

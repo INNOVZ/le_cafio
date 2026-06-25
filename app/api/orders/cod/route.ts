@@ -153,7 +153,6 @@ export async function POST(request: Request) {
       (sum, item) => sum + item.lineTotal,
       0
     );
-    const serviceFee = 5;
     let deliveryFee = 0;
     let deliveryLine1: string | null = null;
     let deliveryLatitude: number | null = null;
@@ -199,7 +198,7 @@ export async function POST(request: Request) {
       deliveryValidatedAt = new Date();
     }
 
-    const grandTotal = subtotal + serviceFee + deliveryFee;
+    const grandTotal = subtotal + deliveryFee;
     const orderNumber = generateOrderNumber();
 
     const order = await prisma.order.create({
@@ -220,7 +219,7 @@ export async function POST(request: Request) {
         subtotal,
         discountTotal: 0,
         deliveryFee,
-        taxTotal: serviceFee,
+        taxTotal: 0,
         grandTotal,
         currency: 'AED',
         deliveryLine1,
@@ -271,7 +270,6 @@ export async function POST(request: Request) {
       ),
       '',
       `Subtotal: AED ${formatMoney(subtotal)}`,
-      `Service Fee: AED ${formatMoney(serviceFee)}`,
       fulfillmentType === 'DELIVERY'
         ? `Delivery Fee: AED ${formatMoney(deliveryFee)}`
         : null,

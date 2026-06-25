@@ -18,6 +18,16 @@ export type GooglePlaceDetails = {
   longitude: number;
 };
 
+export class GooglePlacesRequestError extends Error {
+  constructor(
+    public readonly status: number,
+    operation: 'autocomplete' | 'place details'
+  ) {
+    super(`Google ${operation} failed with status ${status}`);
+    this.name = 'GooglePlacesRequestError';
+  }
+}
+
 const GOOGLE_PLACES_AUTOCOMPLETE_URL =
   'https://places.googleapis.com/v1/places:autocomplete';
 const GOOGLE_PLACES_BASE_URL = 'https://places.googleapis.com/v1/places';
@@ -32,6 +42,26 @@ function getGoogleMapsServerApiKey() {
   }
 
   return apiKey;
+}
+
+async function getGooglePlacesError(
+  response: Response,
+  operation: 'autocomplete' | 'place details'
+) {
+  const errorBody = (await response.json().catch(() => null)) as {
+    error?: {
+      status?: string;
+      message?: string;
+    };
+  } | null;
+
+  console.error(`Google ${operation} request failed`, {
+    status: response.status,
+    googleStatus: errorBody?.error?.status,
+    googleMessage: errorBody?.error?.message,
+  });
+
+  return new GooglePlacesRequestError(response.status, operation);
 }
 
 export async function fetchAddressSuggestions({
@@ -72,10 +102,11 @@ export async function fetchAddressSuggestions({
     },
     body: JSON.stringify(body),
     cache: 'no-store',
+    signal: AbortSignal.timeout(8_000),
   });
 
   if (!response.ok) {
-    throw new Error(`Google autocomplete failed with status ${response.status}`);
+    throw await getGooglePlacesError(response, 'autocomplete');
   }
 
   const data = (await response.json()) as {
@@ -128,10 +159,11 @@ export async function fetchPlaceDetails(
       'X-Goog-FieldMask': 'formattedAddress,location',
     },
     cache: 'no-store',
+    signal: AbortSignal.timeout(8_000),
   });
 
   if (!response.ok) {
-    throw new Error(`Google place details failed with status ${response.status}`);
+    throw await getGooglePlacesError(response, 'place details');
   }
 
   const data = (await response.json()) as {

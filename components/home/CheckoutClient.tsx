@@ -32,7 +32,6 @@ function createSessionToken() {
 export default function CheckoutClient({
   branchSlug,
   branchLocation,
-  restaurantLocations,
 }: {
   branchSlug: string;
   branchLocation: RestaurantLocationListItem;
@@ -41,6 +40,9 @@ export default function CheckoutClient({
   const router = useRouter();
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [isFetchingSuggestions, setIsFetchingSuggestions] = useState(false);
+  const [autocompleteError, setAutocompleteError] = useState<string | null>(
+    null
+  );
 
   const cartItems = useStore((state) => state.cartItems);
   const incrementCartItem = useStore((state) => state.incrementCartItem);
@@ -98,12 +100,11 @@ export default function CheckoutClient({
     (sum, item) => sum + item.price * item.quantity,
     0
   );
-  const serviceFee = cartItems.length > 0 ? 5 : 0;
   const deliveryFee =
     fulfillmentType === 'DELIVERY' && deliveryCheckStatus === 'available'
       ? 12
       : 0;
-  const total = subtotal + serviceFee + deliveryFee;
+  const total = subtotal + deliveryFee;
 
   useEffect(() => {
     if (
@@ -114,13 +115,17 @@ export default function CheckoutClient({
     ) {
       setSuggestions([]);
       setIsFetchingSuggestions(false);
+      setAutocompleteError(null);
       return;
     }
 
     let cancelled = false;
+    let abortController: AbortController | null = null;
     const timer = window.setTimeout(async () => {
       try {
+        abortController = new AbortController();
         setIsFetchingSuggestions(true);
+        setAutocompleteError(null);
         const response = await fetch('/api/address-autocomplete', {
           method: 'POST',
           headers: {
@@ -132,6 +137,7 @@ export default function CheckoutClient({
             originLatitude: selectedRestaurant.latitude,
             originLongitude: selectedRestaurant.longitude,
           }),
+          signal: abortController.signal,
         });
 
         const result = (await response.json()) as {
@@ -147,12 +153,21 @@ export default function CheckoutClient({
 
         if (!cancelled) {
           setSuggestions(result.suggestions ?? []);
+          setAutocompleteError(null);
         }
       } catch (error) {
-        console.error('Autocomplete error:', error);
-        if (!cancelled) {
-          setSuggestions([]);
+        if (
+          cancelled ||
+          (error instanceof DOMException && error.name === 'AbortError')
+        ) {
+          return;
         }
+
+        console.error('Autocomplete error:', error);
+        setSuggestions([]);
+        setAutocompleteError(
+          'Address suggestions are unavailable right now. Please try again shortly.'
+        );
       } finally {
         if (!cancelled) {
           setIsFetchingSuggestions(false);
@@ -163,6 +178,7 @@ export default function CheckoutClient({
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
+      abortController?.abort();
     };
   }, [
     deliveryAddressQuery,
@@ -173,6 +189,7 @@ export default function CheckoutClient({
   ]);
 
   function handleAddressInputChange(value: string) {
+    setAutocompleteError(null);
     updateCheckout({
       deliveryAddressQuery: value,
       deliveryPlaceId: null,
@@ -192,6 +209,7 @@ export default function CheckoutClient({
     });
     invalidateDeliveryCheck();
     setSuggestions([]);
+    setAutocompleteError(null);
   }
 
   async function handleCheckAvailability() {
@@ -415,8 +433,8 @@ export default function CheckoutClient({
                           </p>
                           <p className="mt-1 text-sm text-[#7d6658]">
                             {mode === 'PICKUP'
-                              ? 'Collect from your chosen branch.'
-                              : 'Select an address from Google suggestions and validate the branch radius.'}
+                              ? 'Collect from branch.'
+                              : 'Search for your delivery address and confirm availability.'}
                           </p>
                         </div>
                       </div>
@@ -462,6 +480,15 @@ export default function CheckoutClient({
                         <Loader2 className="h-4 w-4 animate-spin" />
                         Searching addresses...
                       </div>
+                    ) : null}
+
+                    {autocompleteError ? (
+                      <p
+                        role="alert"
+                        className="mt-3 rounded-lg bg-[#fff1ee] px-3 py-2 text-sm text-[#8a2d21]"
+                      >
+                        {autocompleteError}
+                      </p>
                     ) : null}
 
                     {!deliveryPlaceId &&
@@ -669,7 +696,7 @@ export default function CheckoutClient({
                     {
                       id: 'CASH_ON_DELIVERY',
                       title: 'Cash on Delivery',
-                    }
+                    },
                   ] as const
                 ).map((method) => {
                   const isActive = paymentMethod === method.id;
@@ -736,10 +763,6 @@ export default function CheckoutClient({
                 <div className="flex items-center justify-between">
                   <span>Subtotal</span>
                   <span>{formatPrice(subtotal)}</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span>Service Fee</span>
-                  <span>{formatPrice(serviceFee)}</span>
                 </div>
                 {fulfillmentType === 'DELIVERY' ? (
                   <div className="flex items-center justify-between">

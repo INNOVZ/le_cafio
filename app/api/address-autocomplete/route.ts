@@ -1,7 +1,10 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-import { fetchAddressSuggestions } from '@/lib/google-places';
+import {
+  fetchAddressSuggestions,
+  GooglePlacesRequestError,
+} from '@/lib/google-places';
 
 const requestSchema = z.object({
   input: z.string().trim().min(3),
@@ -31,11 +34,9 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         message:
-          error instanceof Error
-            ? error.message
-            : 'Unexpected error while fetching address suggestions.',
+          'Address suggestions are temporarily unavailable. Please try again shortly.',
       },
-      { status: 500 }
+      { status: error instanceof GooglePlacesRequestError ? 503 : 500 }
     );
   }
 }
